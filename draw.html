@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Draw</title>
+  <link href="vendors/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  <link href="style.css" rel="stylesheet" type="text/css" />
+  <script src="vendors/jquery/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="vendors/paper/paper-full.min.js"></script>
+  
+</head>
+<body>
+  
+  <!-- Please remove web socket demo before submission -->
+  
+  <h4>Web socket demo</h4>
+  Your Message: <input id="input"></input>
+  <div id="status"></div>
+  <br></br>
+
+  <!-- Please remove drawing demo title before submission -->
+  <!-- You may make the drawing larger -->
+  
+  <h4>Drawing demo</h4>
+  <canvas id="myCanvas" width="350px" height="350px"></canvas>
+  
+  
+  <script>
+    window.onload = function() {
+
+      // click and drag to draw
+      function basicDrawingTool(){
+        
+    		var tool = new paper.Tool();
+    		var path;
+    
+    		// Define a mousedown and mousedrag handler
+    		tool.onMouseDown = function(event) {
+    			path = new paper.Path();
+    			path.strokeColor = 'black';
+    			path.add(event.point);
+    		}
+    
+    		tool.onMouseDrag = function(event) {
+    			path.add(event.point);
+    		}      
+      }
+
+      // type in chat and press enter for demo
+      function basicWebsocketChat(){
+          // The p4 starter code below is based on @MrEconomical (https://replit.com/@MrEconomical)'s ws-server-template example
+        
+        // Establish websocket connection
+        var socket = new WebSocket("wss://ws-server-template.YOURUSERNAMEHERE.repl.co", "very-good-protocol");
+        
+        socket.onopen = function(){
+          $("#status").append("[open] websocket connection opened")
+          $("#status").append($("<br>"));
+        }
+        
+        socket.onmessage = function(message){
+          // Receive a message from websocket server
+          $("#status").append(`[receive] ${message.data}`);
+          $("#status").append($("<br>"));
+        }
+        
+        socket.onclose = function(){
+          $("#status").append("[close] websocket connection closed");
+          $("#status").append($("<br>"));
+        }
+        
+        // Event listeners
+        $('#input').on("keypress", function(event){
+          if (event.key === "Enter") {
+        
+              // Send a message from this browser window
+              socket.send($('#input').val());
+              $("#status").append(`[send] ${$('#input').val()}`);
+              $("#status").append($("<br>"));
+              $('#input').val("");
+          }
+        });
+      }
+
+      function init(){
+        // setup paper.js
+        paper.setup('myCanvas');
+        basicDrawingTool();
+        basicWebsocketChat(); 
+      }
+
+      init();
+
+      
+      
+    }
+
+</script>
+</body>
+</html>
