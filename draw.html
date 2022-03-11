@@ -40,6 +40,7 @@
         var color_index = Math.floor(Math.random() * 5);
     		var tool = new paper.Tool();
     		var path;
+        var path_two;
         const client = new Map();
         var drawSock = new WebSocket("wss://ws-server-template.rutvis.repl.co", "very-good-protocol");
         const colors = ['green', 'blue', 'black', 'yellow', 'orange'];
@@ -47,40 +48,46 @@
     		// Define a mousedown and mousedrag handler
     		tool.onMouseDown = function(event) {
     			path = new paper.Path();
-    			path.strokeColor = colors[color_index];
+    			//path.strokeColor = colors[color_index];
+          path.strokeColor = "black";
           path.add(event.point);
+
+          path_two = new paper.Path();
+          path_two.strokeColor = "black";
+          path_two.add(event.point);
     		}
 
         drawSock.onopen = function(){
-          tool.onMouseMove = function(event){ 
-            // drawSock.send(event.point.x + " " + event.point.y);
-            drawSock.send(event.point.x + " " + event.point.y + " " + color_index);
+          tool.onMouseMove = function(event){
+            drawSock.send(event.point.x + " " + event.point.y);
+            // drawSock.send(event.point.x + " " + event.point.y + " " + color_index);
           }
         }
-        var myUrl = window.location.href;
-        var urlStr = myUrl.toString();
-        var lastFive = urlStr.substring(urlStr.length - 5);
-        console.log(lastFive);
-        
+        // var myUrl = window.location.href;
+        // var urlStr = myUrl.toString();
+        // var lastFive = urlStr.substring(urlStr.length - 5);
+        // console.log(lastFive);
         drawSock.onmessage = function(message){
-          var msg_split = message.data.split(" ");
-          var xy = [msg_split[0], msg_split[1]];
-          var color_indexTwo = msg_split[2];
-          var x = msg_split[0];
-          var y = msg_split[1];
+          // var msg_split = message.data.split(" ");
+          // var xy = [msg_split[0], msg_split[1]];
+          // var color_indexTwo = msg_split[2];
+          // var x = msg_split[0];
+          // var y = msg_split[1];
 
-          if(lastFive.localeCompare('large') == 0 || color_index == color_indexTwo){
-            if(client.has(color_indexTwo) == false){
-              var path_two = new paper.Path();
-              path_two.strokeColor = colors[color_indexTwo];
-              path_two.add(new paper.Point(xy));
-              client.set(color_indexTwo, path_two)
-            }else{
-              var path_two = client.get(color_indexTwo);
-              path_two.add(new paper.Point(xy));
-            }
-          }
+          // if(lastFive.localeCompare('large') == 0 || color_index == color_indexTwo){
+          //   if(client.has(color_indexTwo) == false){
+          //     var path_two = new paper.Path();
+          //     path_two.strokeColor = colors[color_indexTwo];
+          //     path_two.add(new paper.Point(xy));
+          //     client.set(color_indexTwo, path_two)
+          //   }else{
+          //     var path_two = client.get(color_indexTwo);
+          //     path_two.add(new paper.Point(xy));
+          //   }
+          // }
           // // path.add(new paper.Point(coord));
+          var msg_split = message.data.split(" ");
+          path_two.add(new paper.Point(msg_split));
         }
       }
 
