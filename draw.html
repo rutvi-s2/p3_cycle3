@@ -28,23 +28,61 @@
   
   <script>
     window.onload = function() {
+      function uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
 
       // click and drag to draw
       function basicDrawingTool(){
-        
+        var color_index = Math.floor(Math.random() * 5);
     		var tool = new paper.Tool();
     		var path;
+        const client = new Map();
+        var drawSock = new WebSocket("wss://ws-server-template.rutvis.repl.co", "very-good-protocol");
+        const colors = ['green', 'blue', 'black', 'yellow', 'orange'];
     
     		// Define a mousedown and mousedrag handler
     		tool.onMouseDown = function(event) {
     			path = new paper.Path();
-    			path.strokeColor = 'black';
+    			path.strokeColor = colors[color_index];
     			path.add(event.point);
     		}
-    
-    		tool.onMouseDrag = function(event) {
-    			path.add(event.point);
-    		}      
+    		// tool.onMouseDrag = function(event) {
+    		// 	path.add(event.point);
+    		// }
+        drawSock.onopen = function(){
+          tool.onMouseMove = function(event){ 
+            // drawSock.send(event.point.x + " " + event.point.y);
+            drawSock.send(event.point.x + " " + event.point.y + " " + color_index);
+          }
+        }
+        var myUrl = window.location.href;
+        var urlStr = myUrl.toString();
+        var lastFive = urlStr.substring(urlStr.length - 5);
+        console.log(lastFive);
+        drawSock.onmessage = function(message){
+          var msg_split = message.data.split(" ");
+          var xy = [msg_split[0], msg_split[1]];
+          var color_indexTwo = msg_split[2];
+          var x = msg_split[0];
+          var y = msg_split[1];
+
+          if(lastFive.localeCompare('large') == 0 || color_index == color_indexTwo){
+            if(client.has(color_indexTwo) == false){
+              var path_two = new paper.Path();
+              path_two.strokeColor = colors[color_indexTwo];
+              path_two.add(new paper.Point(xy));
+              client.set(color_indexTwo, path_two)
+            }else{
+              var path_two = client.get(color_indexTwo);
+              path_two.add(new paper.Point(xy));
+            }
+          }
+          // path.add(new paper.Point(coord));
+        }
       }
 
       // type in chat and press enter for demo
@@ -52,7 +90,7 @@
           // The p4 starter code below is based on @MrEconomical (https://replit.com/@MrEconomical)'s ws-server-template example
         
         // Establish websocket connection
-        var socket = new WebSocket("wss://ws-server-template.YOURUSERNAMEHERE.repl.co", "very-good-protocol");
+        var socket = new WebSocket("wss://ws-server-template.rutvis.repl.co", "very-good-protocol");
         
         socket.onopen = function(){
           $("#status").append("[open] websocket connection opened")
@@ -61,8 +99,8 @@
         
         socket.onmessage = function(message){
           // Receive a message from websocket server
-          $("#status").append(`[receive] ${message.data}`);
-          $("#status").append($("<br>"));
+          // $("#status").append(`[receive] ${message.data}`);
+          // $("#status").append($("<br>"));
         }
         
         socket.onclose = function(){
@@ -76,8 +114,8 @@
         
               // Send a message from this browser window
               socket.send($('#input').val());
-              $("#status").append(`[send] ${$('#input').val()}`);
-              $("#status").append($("<br>"));
+              // $("#status").append(`[send] ${$('#input').val()}`);
+              // $("#status").append($("<br>"));
               $('#input').val("");
           }
         });
@@ -90,7 +128,10 @@
         basicWebsocketChat(); 
       }
 
+      function detect(){
+      }
       init();
+      detect();
 
       
       
